@@ -10,5 +10,5 @@ module.exports = app => {
     router.put("/:id", client.update);
     router.delete("/:id", client.delete);
 
-    app.use("/clients", router);
+    app.use("/client", router);
 }

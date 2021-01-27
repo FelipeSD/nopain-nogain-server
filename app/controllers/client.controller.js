@@ -54,7 +54,7 @@ exports.update = (req, res) => {
         return;
     }
     
-    const id = requ.params.id;
+    const id = req.params.id;
 
     Client.findByIdAndUpdate(id, req.body).then(data => {
         if (!data) {

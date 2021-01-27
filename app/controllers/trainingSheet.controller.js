@@ -6,13 +6,13 @@ const Client = db.client;
 exports.create = (req, res) => {
     let data = req.body;
 
-    if(!data.exercise || !data.clientId){
+    if(!data.exercise || !data.owner){
         res.status(400).send({message: "Exercise name and its owner, both required, weren't set"});
         return
     }
 
     // Check if client do exists
-    Client.findById(data.clientId).then(clientData=>{
+    Client.findById(data.owner).then(clientData=>{
         
         if(clientData){
 
@@ -25,7 +25,7 @@ exports.create = (req, res) => {
                 sets: data.sets, // series of repetitions to complete the exercise
                 frequency: data.frequency, // Diary, 2 times/week...
                 notes: data.notes,
-                owner: data.clientId
+                owner: data.owner
             });
         
             // find the client by id to associate
