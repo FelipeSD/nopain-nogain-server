@@ -14,6 +14,8 @@ exports.create = (req, res) => {
     const client = new Client({
         name: data.name,
         age: data.age,
+        height: data.height,
+        weight: data.weight,
         gender: data.gender
     });
 
