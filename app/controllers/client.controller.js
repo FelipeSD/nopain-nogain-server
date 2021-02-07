@@ -1,4 +1,4 @@
-const { clientModel, trainingSheet } = require("../models");
+const { clientModel } = require("../models");
 const db = require("../models");
 const Client = db.client;
 const TrainingSheet = db.trainingSheet;
@@ -12,6 +12,7 @@ exports.create = (req, res) => {
     }
 
     const client = new Client({
+        userId: data.userId,
         name: data.name,
         age: data.age,
         height: data.height,
@@ -29,19 +30,37 @@ exports.create = (req, res) => {
 }
 
 exports.findOne = (req, res) => {
-    const id = req.params.id;
+    console.log(req.body);   
 
-    Client.findById(id).populate("trainingSheets").then(data => {
-        if(!data){
-            res.status(404).send({ message: "Client Not Found" });
+    Client.findOne(req.body).exec((err, client)=>{
+        console.log(client);
+        if(!err){
+            if(
+                client // 👈 null and undefined check
+                && Object.keys(client).length === 0 
+                && client.constructor === Object
+            ){
+                res.status(404).send({ message: "Client Not Found" });
+            }else{
+                res.send(client);
+            }
         }else{
-            res.send(data)
+            res.status(500).send({ message: "Couldn't get client", err})
         }
-    })
+    });
+    // .then(data => {
+    //     if(!data.length){
+    //         res.status(404).send({ message: "Client Not Found" });
+    //     }else{
+    //         res.send(data)
+    //     }
+    // }).catch(err => {
+    //     res.status(500).send({ message: "Couldn't get client"})
+    // });
 }
 
 exports.findAll = (req, res) => {
-    const condition = {};
+    const condition = {...req.body};
 
     Client.find(condition).then(data => {
         res.send(data)
@@ -56,8 +75,8 @@ exports.update = (req, res) => {
         return;
     }
     
-    const id = req.params.id;
-
+    let id = req.params.id;
+    console.log(req.body);
     Client.findByIdAndUpdate(id, req.body).then(data => {
         if (!data) {
             res.status(400).send({ message: "Can't update client" })
@@ -71,6 +90,8 @@ exports.update = (req, res) => {
 
 exports.delete = (req, res) => {
     const id = req.params.id;
+
+    console.log(req.body, req.params);
 
     Client.findByIdAndRemove(id).then(data => {
         if (!data) {
@@ -86,7 +107,7 @@ exports.delete = (req, res) => {
 
 exports.getTrainingSheets = (req, res) => {
     const id = req.params.id;
-
+    console.log(req.body);
     TrainingSheet.find({owner: id}).then(trainingSheetData => {
         if (!trainingSheetData) {
             res.status(400).send({ message: "Can't find workout logs" })

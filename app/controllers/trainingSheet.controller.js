@@ -48,7 +48,7 @@ exports.create = (req, res) => {
 
 exports.findOne = (req, res) => {
     const id = req.params.id;
-
+    console.log(req);
     TrainingSheet.findById(id).then(data => {
         if(!data){
             res.status(404).send({ message: "Training Sheet Not Found" });
@@ -60,6 +60,8 @@ exports.findOne = (req, res) => {
 
 exports.findAll = (req, res) => {
     const condition = {};
+    
+    console.log(req);
 
     TrainingSheet.find(condition).then(data => {
         res.send(data)
