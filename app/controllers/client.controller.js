@@ -1,9 +1,9 @@
-const { clientModel, trainingSheet } = require("../models");
+const { clientModel } = require("../models");
 const db = require("../models");
 const Client = db.client;
 const TrainingSheet = db.trainingSheet;
 
-exports.create = (req, res) => {
+exports.create = async (req, res) => {
     let data = req.body;
 
     if(!data.name){
@@ -12,6 +12,7 @@ exports.create = (req, res) => {
     }
 
     const client = new Client({
+        userId: data.userId,
         name: data.name,
         age: data.age,
         height: data.height,
@@ -19,79 +20,89 @@ exports.create = (req, res) => {
         gender: data.gender
     });
 
-    client.save(clientModel).then(data=>{
+    try {
+        const data = await client.save(clientModel);
         res.send(data);
-    }).catch(err => {
+    }catch (e) {
         res.status(500).send({
-            message: err.message
-        })
-    })
+            message: e.message
+        });
+    }
 }
 
 exports.findOne = (req, res) => {
-    const id = req.params.id;
 
-    Client.findById(id).populate("trainingSheets").then(data => {
-        if(!data){
-            res.status(404).send({ message: "Client Not Found" });
+    Client.findOne(req.body).exec((err, client)=>{
+        if(!err){
+            if(
+                client
+                && Object.keys(client).length === 0 
+                && client.constructor === Object
+            ){
+                res.status(404).send({ message: "Client Not Found" });
+            }else{
+                res.send(client);
+            }
         }else{
-            res.send(data)
+            res.status(500).send({ message: "Couldn't get client", err})
         }
-    })
-}
-
-exports.findAll = (req, res) => {
-    const condition = {};
-
-    Client.find(condition).then(data => {
-        res.send(data)
-    }).catch(err => {
-        res.status(500).send({ message: "Couldn't get client list"})
     });
 }
 
-exports.update = (req, res) => {
+exports.findAll = async (req, res) => {
+    try {
+        const condition = {...req.body};
+        const data = await Client.find(condition)
+        res.send(data);
+    }catch (e) {
+        res.status(500).send({ message: "Couldn't get client list"})
+    }
+}
+
+exports.update = async (req, res) => {
     if(!req.body){
         res.status(400).send({ message: "Invalid data" });
         return;
     }
     
-    const id = req.params.id;
-
-    Client.findByIdAndUpdate(id, req.body).then(data => {
+    try {
+        let id = req.params.id;
+        const data = await Client.findByIdAndUpdate(id, req.body);
         if (!data) {
             res.status(400).send({ message: "Can't update client" })
         } else {
             res.send({ message: "Client successfully updated" });
         }
-    }).catch(err => {
+    }catch (e) {
         res.status(500).send({ message: "Biiirll!!! O erro ta saindo da jaula" });
-    });
+    }
 }
 
-exports.delete = (req, res) => {
-    const id = req.params.id;
-
-    Client.findByIdAndRemove(id).then(data => {
+exports.delete = async (req, res) => {
+    try{
+        const id = req.params.id;
+        const data = await Client.findByIdAndRemove(id);
         if (!data) {
             res.status(400).send({ message: "Can't remove client" })
         } else {
             TrainingSheet.deleteMany({owner: id}).exec();
             res.send({ message: "Client successfully removed" });
         }
-    }).catch(err => {
+    }catch (e) {
         res.status(500).send({ message: "Hoops! Error ocur" });
-    });
+    }
 }
 
-exports.getTrainingSheets = (req, res) => {
-    const id = req.params.id;
-
-    TrainingSheet.find({owner: id}).then(trainingSheetData => {
+exports.getTrainingSheets = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const trainingSheetData = await TrainingSheet.find({owner: id});
         if (!trainingSheetData) {
             res.status(400).send({ message: "Can't find workout logs" })
         }else{
             res.send(trainingSheetData);
         }
-    });
+    }catch (e) {
+        res.status(500).send({ message: "Hoops! Error ocur" });
+    }
 }

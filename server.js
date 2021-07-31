@@ -24,7 +24,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 // Uma rota, aceitando conexões na raiz e retornando um json simples
 app.get("/", (req, res) => {
-    res.json({message: "Está funcionando!"});
+    res.json({message: "Workout API!"});
 });
 
 require("./app/routes/client.routes")(app);
